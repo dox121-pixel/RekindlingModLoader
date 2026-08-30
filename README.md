@@ -264,7 +264,7 @@ Deploy straight into the game folder:
 | Sample | What it demonstrates |
 | --- | --- |
 | `ExampleMod` | The minimum viable mod: logging, lifecycle events, a Harmony patch, cross-mod lookup. |
-| `MenuOverhaul` | A real feature mod - crossfading background slideshow, a rebuilt main menu layout, and an in-game Mods screen with posters. |
+| `MenuOverhaul` | A real feature mod - crossfading background slideshow, a rebuilt main menu layout, relocated Discord/Patreon buttons, and an in-game Mods screen with posters. |
 
 Deploying fails fast if the game is running, because a running game holds its mod assemblies open
 and the copy would silently leave you testing the previous build.
@@ -353,9 +353,10 @@ On a real game launch:
 - `GameStateChanged` fired correctly through `menu → loading → menu`.
 - 15,134 frames rendered across the menu, the Options screen and the Mods screen, with no errors.
 - A loose PNG converted and accepted by MonoGame's `Texture2DReader` without error.
-- `MenuOverhaul` verified by screenshot: logo repositioned, button column rebuilt and clear of the
-  game's social buttons, background crossfade caught mid-transition, and the Mods screen listing
-  all three mods with posters.
+- `MenuOverhaul` verified by screenshot: logo repositioned, button column rebuilt, background
+  crossfade caught mid-transition, and the Mods screen listing all three mods with posters.
+- Discord and Patreon relocated to the bottom-left above the version number, with their URLs read
+  out of the game's own IL rather than copied, and both confirmed working by hand.
 - Clean shutdown with `OnUnload` called.
 
 Not yet verified:
