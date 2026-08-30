@@ -1,11 +1,17 @@
 # Rekindling Mod Loader
 
-An unofficial mod loader for [Rekindling](https://store.steampowered.com/app/661500/), built with
-the developer's permission.
+[![CI](../../actions/workflows/ci.yml/badge.svg)](../../actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+An **unofficial** mod loader for [Rekindling](https://store.steampowered.com/app/661500/), built
+with the developer's permission.
 
 It loads mods into the game without modifying a single game file. Nothing is renamed, patched on
 disk, or replaced, so Steam's *Verify integrity of game files* stays clean and a game update
 cannot break your install.
+
+> This is not affiliated with or supported by the developer. Report problems here, not to them.
+> If you are having trouble with a specific mod, report it to that mod's author.
 
 ---
 
@@ -253,10 +259,12 @@ It is populated once loading finishes, so read it from `OnGameReady` onwards rat
 ## Building
 
 Needs the .NET SDK. The .NET Framework 4.7.2 targeting pack comes from NuGet, so Visual Studio is
-not required.
+not required - and **you do not need to own the game to build the loader**. With no install
+present it compiles against the MonoGame NuGet package instead; the output still binds to the
+game's own copy at runtime.
 
 ```bash
-git clone <this repo>
+git clone https://github.com/<owner>/RekindlingModLoader
 cd RekindlingModLoader
 dotnet build -c Release
 ```
@@ -270,18 +278,11 @@ dotnet build -c Release -p:RekindlingDir="D:\Games\Rekindling"
 Deploy straight into the game folder:
 
 ```powershell
-.\deploy.ps1 -GameDir "D:\Games\Rekindling" -IncludeSample
+.\deploy.ps1 -GameDir "D:\Games\Rekindling"
 ```
 
-`-IncludeSample` also deploys the two bundled sample mods:
-
-| Sample | What it demonstrates |
-| --- | --- |
-| `ExampleMod` | The minimum viable mod: logging, lifecycle events, a Harmony patch, cross-mod lookup. |
-| `MenuOverhaul` | A real feature mod - crossfading background slideshow, a rebuilt main menu layout with an Extra sub-list, relocated Discord/Patreon buttons, a build-notice watermark, and an in-game Mods screen with posters. |
-
-Deploying fails fast if the game is running, because a running game holds its mod assemblies open
-and the copy would silently leave you testing the previous build.
+Deploying fails fast if the game is running: a running game holds its assemblies open, so the
+copy would silently leave you testing the previous build.
 
 Run the tests:
 

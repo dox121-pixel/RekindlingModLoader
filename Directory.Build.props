@@ -1,13 +1,13 @@
 <Project>
 
   <!--
-    Path to the Rekindling install. Override on the command line if yours differs:
+    Path to a Rekindling install. Override on the command line if yours differs:
         dotnet build -p:RekindlingDir="D:\Games\Rekindling"
-    Only MonoGame.Framework.dll is referenced at compile time; the game assembly itself
-    is resolved reflectively at runtime so the loader survives game updates.
   -->
   <PropertyGroup>
     <RekindlingDir Condition="'$(RekindlingDir)' == ''">C:\SteamLibrary\steamapps\common\Rekindling</RekindlingDir>
+    <HasGameInstall Condition="Exists('$(RekindlingDir)\MonoGame.Framework.dll')">true</HasGameInstall>
+    <HasGameInstall Condition="'$(HasGameInstall)' == ''">false</HasGameInstall>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -25,9 +25,29 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
   </ItemGroup>
 
-  <Target Name="VerifyRekindlingDir" BeforeTargets="ResolveAssemblyReferences">
-    <Error Condition="!Exists('$(RekindlingDir)\MonoGame.Framework.dll')"
-           Text="Could not find MonoGame.Framework.dll in '$(RekindlingDir)'. Set RekindlingDir to your Rekindling install folder, e.g. -p:RekindlingDir=&quot;D:\Games\Rekindling&quot;." />
+  <!--
+    MonoGame is needed to compile against, but never shipped: at runtime the loader always
+    binds to the copy the game already has. When a game install is present its own assembly is
+    referenced, which guarantees an exact identity match. Otherwise the equivalent NuGet package
+    stands in, so the loader can be built and tested on a machine without the game - which is
+    what makes CI and outside contributions possible.
+
+    3.8.0.1641 is the assembly version Rekindling ships. Keep these in step.
+  -->
+  <ItemGroup Condition="'$(HasGameInstall)' == 'true'">
+    <Reference Include="MonoGame.Framework">
+      <HintPath>$(RekindlingDir)\MonoGame.Framework.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(HasGameInstall)' != 'true'">
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <Target Name="ReportGameInstall" BeforeTargets="Build" Condition="'$(HasGameInstall)' != 'true'">
+    <Message Importance="high"
+             Text="No Rekindling install found at '$(RekindlingDir)'; building against the MonoGame NuGet package instead. The output still runs against the game's own copy." />
   </Target>
 
 </Project>

@@ -24,10 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="MonoGame.Framework">
-      <HintPath>$(RekindlingDir)\MonoGame.Framework.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>

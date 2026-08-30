@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    # The loader targets .NET Framework 4.7.2 and produces an x86 executable, so it needs a
+    # Windows runner. It does not need the game: with no install present the build falls back
+    # to the MonoGame NuGet package for compile-time references only.
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        # Pure-logic checks: manifest parsing, version comparison, dependency resolution and
+        # asset-name normalisation. The XNB encoding checks compare against the game's own
+        # content files and skip themselves when no install is present.
+        run: .\tests\Rekindling.ModLoader.Tests\bin\Release\Rekindling.ModLoader.Tests.exe
+
+      - name: Upload loader build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rekindling.ModLoader
+          path: |
+            src/Rekindling.ModLoader/bin/Release/Rekindling.ModLoader.exe
+            src/Rekindling.ModLoader/bin/Release/Rekindling.ModLoader.exe.config
+            src/Rekindling.ModLoader/bin/Release/Rekindling.ModLoader.API.dll
+            src/Rekindling.ModLoader/bin/Release/Rekindling.ModLoader.API.xml
+            src/Rekindling.ModLoader/bin/Release/0Harmony.dll
+          if-no-files-found: error

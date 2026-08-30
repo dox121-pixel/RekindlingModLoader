@@ -1,7 +1,4 @@
 <Solution>
-  <Folder Name="/samples/">
-    <Project Path="samples/ExampleMod/ExampleMod.csproj" />
-  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Rekindling.ModLoader.API/Rekindling.ModLoader.API.csproj" />
     <Project Path="src/Rekindling.ModLoader/Rekindling.ModLoader.csproj" />

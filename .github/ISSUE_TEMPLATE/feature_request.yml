@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest something the loader should be able to do
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: >
+        Describe the goal rather than the solution. Knowing what a mod is trying to achieve
+        usually leads to a better API than implementing a specific suggestion as written.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help
+      description: An API sketch, a manifest field, a hook - whatever you have in mind.
+    validations:
+      required: false
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: How you are handling it today, if at all.
+    validations:
+      required: false

@@ -1,0 +1,65 @@
+name: Bug report
+description: Something the loader does wrong
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check first whether the problem also happens with **no mods installed**
+        (move your `Mods` folder aside and relaunch). That one step tells us whether this
+        belongs here or with the mod's author.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what you got instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Launch Rekindling.ModLoader.exe
+        2. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: >
+        Contents of `Logs/modloader.log`. Relaunching with `--debug` first gives much more
+        detail. This is by far the most useful thing you can include.
+      render: text
+    validations:
+      required: true
+
+  - type: input
+    id: loader-version
+    attributes:
+      label: Loader version
+      description: The first line of the log.
+      placeholder: "0.2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: game-version
+    attributes:
+      label: Game version
+      description: Shown in the bottom-left of the main menu.
+      placeholder: "1.0.15"
+    validations:
+      required: true
+
+  - type: textarea
+    id: mods
+    attributes:
+      label: Installed mods
+      description: Which mods were present, and whether removing them changes anything.
+    validations:
+      required: false
