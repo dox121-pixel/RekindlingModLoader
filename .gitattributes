@@ -1,0 +1,29 @@
+# Normalise line endings: LF in the repository, native in the working tree.
+# Without this, Windows contributors produce whole-file diffs that hide the real change.
+* text=auto
+
+# Source and config
+*.cs        text diff=csharp
+*.csproj    text
+*.props     text
+*.sln       text
+*.slnx      text
+*.json      text
+*.md        text
+*.yml       text
+*.yaml      text
+
+# Windows-only scripts must keep CRLF or they can misbehave.
+*.ps1       text eol=crlf
+*.cmd       text eol=crlf
+*.bat       text eol=crlf
+
+# Binary: never touch, never try to diff.
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.bmp       binary
+*.dll       binary
+*.exe       binary
+*.pdb       binary
+*.xnb       binary
