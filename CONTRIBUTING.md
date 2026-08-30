@@ -10,7 +10,7 @@ You need the .NET SDK. Visual Studio is not required - the .NET Framework 4.7.2 
 comes from NuGet.
 
 ```bash
-git clone https://github.com/<owner>/RekindlingModLoader
+git clone https://github.com/dox121-pixel/RekindlingModLoader
 cd RekindlingModLoader
 dotnet build -c Release
 ```

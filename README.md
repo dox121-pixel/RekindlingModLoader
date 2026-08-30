@@ -264,7 +264,7 @@ present it compiles against the MonoGame NuGet package instead; the output still
 game's own copy at runtime.
 
 ```bash
-git clone https://github.com/<owner>/RekindlingModLoader
+git clone https://github.com/dox121-pixel/RekindlingModLoader
 cd RekindlingModLoader
 dotnet build -c Release
 ```
