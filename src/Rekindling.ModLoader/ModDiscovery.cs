@@ -9,7 +9,7 @@ namespace Rekindling.ModLoader
     /// <summary>
     /// A mod the loader knows about, in whatever state it reached.
     /// </summary>
-    internal sealed class LoadedMod
+    internal sealed class LoadedMod : IModInfo
     {
         public LoadedMod(ModManifest manifest) => Manifest = manifest;
 
@@ -27,6 +27,26 @@ namespace Rekindling.ModLoader
 
         /// <summary>True once <see cref="IMod.OnLoad"/> has completed without throwing.</summary>
         public bool IsLoaded { get; set; }
+
+        string IModInfo.Name => Manifest.Name;
+        string IModInfo.Version => Manifest.Version;
+        string IModInfo.Author => Manifest.Author;
+        string IModInfo.Description => Manifest.Description;
+        string IModInfo.Directory => Manifest.Directory;
+        bool IModInfo.IsContentOnly => string.IsNullOrWhiteSpace(Manifest.Assembly);
+
+        /// <summary>Resolved once, so the UI is not rebuilding paths every frame.</summary>
+        string IModInfo.PosterPath
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(Manifest.Poster))
+                    return null;
+
+                string path = Path.Combine(Manifest.Directory, Manifest.Poster);
+                return File.Exists(path) ? path : null;
+            }
+        }
 
         public void Fail(string reason)
         {
@@ -127,6 +147,7 @@ namespace Rekindling.ModLoader
                 Entry = json["entry"].AsString(),
                 MinLoaderVersion = json["minLoaderVersion"].AsString(),
                 Assets = json["assets"].AsString(),
+                Poster = json["poster"].AsString(),
                 Directory = directory
             };
 
@@ -148,6 +169,13 @@ namespace Rekindling.ModLoader
             // "requires" as a plain list means "any version".
             foreach (string id in json["requires"].AsStringList())
                 manifest.Requires[id] = "0.0.0";
+
+            // Default to a poster.png in the mod root when nothing was configured.
+            if (string.IsNullOrWhiteSpace(manifest.Poster) &&
+                File.Exists(Path.Combine(directory, "poster.png")))
+            {
+                manifest.Poster = "poster.png";
+            }
 
             // Default to an "assets" folder when one exists and nothing was configured.
             if (string.IsNullOrWhiteSpace(manifest.Assets) &&

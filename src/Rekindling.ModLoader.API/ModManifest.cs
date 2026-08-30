@@ -84,6 +84,12 @@ namespace Rekindling.ModLoader
         /// </summary>
         public string Assets { get; set; }
 
+        /// <summary>
+        /// Optional poster image (relative to the mod folder) shown in the in-game mod list.
+        /// Any format the loader can read works: png, jpg or bmp.
+        /// </summary>
+        public string Poster { get; set; }
+
         /// <summary>Absolute path to the folder this manifest was read from. Set by the loader.</summary>
         public string Directory { get; set; }
 

@@ -35,13 +35,27 @@ if (-not (Test-Path (Join-Path $GameDir "Rekindling.exe"))) {
     throw "Rekindling.exe was not found in '$GameDir'. Pass -GameDir with your install path."
 }
 
+# A running game holds its mod assemblies open, so copies over them fail and you end up
+# testing the previous build without realising it. Fail loudly instead.
+$running = @(Get-Process -Name "Rekindling*" -ErrorAction SilentlyContinue)
+if ($running.Count -gt 0) {
+    $ids = ($running | ForEach-Object { "$($_.ProcessName) (PID $($_.Id))" }) -join ", "
+    throw "Rekindling is still running: $ids. Close it before deploying, or the mod DLLs will not be replaced."
+}
+
 Write-Host "Building ($Configuration)..." -ForegroundColor Cyan
+
+# Each sample mod: project to build, and the loose files/folders it ships alongside its DLL.
+$samples = @(
+    @{ Name = "ExampleMod";   Project = "samples\ExampleMod\ExampleMod.csproj";     Extra = @() }
+    @{ Name = "MenuOverhaul"; Project = "samples\MenuOverhaul\MenuOverhaul.csproj"; Extra = @("art", "poster.png") }
+)
 
 $projects = @(
     "src\Rekindling.ModLoader\Rekindling.ModLoader.csproj"
 )
 if ($IncludeSample) {
-    $projects += "samples\ExampleMod\ExampleMod.csproj"
+    $projects += $samples.Project
 }
 
 foreach ($project in $projects) {
@@ -86,15 +100,40 @@ if (-not (Test-Path $modsDir)) {
 }
 
 if ($IncludeSample) {
-    $sampleOut = Join-Path $repo "samples\ExampleMod\bin\$Configuration"
-    $target = Join-Path $modsDir "ExampleMod"
+    foreach ($sample in $samples) {
+        $name      = $sample.Name
+        $sampleDir = Split-Path (Join-Path $repo $sample.Project) -Parent
+        $sampleOut = Join-Path $sampleDir "bin\$Configuration"
+        $target    = Join-Path $modsDir $name
 
-    New-Item -ItemType Directory -Path $target -Force | Out-Null
-    foreach ($file in @("ExampleMod.dll", "ExampleMod.pdb", "mod.json")) {
-        $source = Join-Path $sampleOut $file
-        if (Test-Path $source) {
-            Copy-Item $source (Join-Path $target $file) -Force
-            Write-Host "  + Mods\ExampleMod\$file"
+        New-Item -ItemType Directory -Path $target -Force | Out-Null
+
+        # Build output: the assembly, its symbols, and the manifest.
+        foreach ($file in @("$name.dll", "$name.pdb", "mod.json")) {
+            $source = Join-Path $sampleOut $file
+            if (Test-Path $source) {
+                Copy-Item $source (Join-Path $target $file) -Force
+                Write-Host "  + Mods\$name\$file"
+            }
+        }
+
+        # Loose content that lives in the project folder rather than the build output
+        # (art folders, posters). Copied from source so it does not need a build action.
+        foreach ($extra in $sample.Extra) {
+            $source = Join-Path $sampleDir $extra
+            if (-not (Test-Path $source)) { continue }
+
+            $destination = Join-Path $target $extra
+            if (Test-Path $source -PathType Container) {
+                # Remove first, so art deleted from the project also disappears in the game.
+                if (Test-Path $destination) { Remove-Item $destination -Recurse -Force }
+                Copy-Item $source $destination -Recurse -Force
+                Write-Host "  + Mods\$name\$extra\  (folder)"
+            }
+            else {
+                Copy-Item $source $destination -Force
+                Write-Host "  + Mods\$name\$extra"
+            }
         }
     }
 }

@@ -107,6 +107,7 @@ reports the offending line and column instead of failing silently.
 | `assembly` | Your DLL. Omit it for a content-only mod that just replaces assets. |
 | `entry` | Optional. Omit and the loader finds the single `IMod` implementation itself. |
 | `assets` | Folder of loose asset overrides, registered automatically. Defaults to `assets` if present. |
+| `poster` | Image shown next to the mod in the in-game mod list. Defaults to `poster.png` if present. |
 | `requires` | Hard dependency. A missing or too-old one disables the mod with an explanation. |
 | `loadAfter` / `loadBefore` | Soft ordering hints. Missing targets are ignored. |
 | `minLoaderVersion` | Refuses to load on an older loader. |
@@ -216,6 +217,23 @@ if (Context.IsModLoaded("someone.corelib"))
 
 `GetMod` returns `null` when the mod is absent, so optional integrations degrade gracefully.
 
+### Reading the mod list
+
+`ModRegistry` exposes everything the loader discovered, for mods that want to display or reason
+about the load order:
+
+```csharp
+foreach (IModInfo mod in ModRegistry.All)
+    Log.Info($"{mod.Name} {mod.Version} - {(mod.IsLoaded ? "ok" : mod.FailureReason)}");
+```
+
+`ModRegistry.All` deliberately includes mods that **failed**, along with the reason. Anyone opening
+a mod list is usually trying to work out why something is not working, and a list that hides the
+broken entries answers the wrong question. Use `ModRegistry.Loaded` when you only want the
+working ones.
+
+It is populated once loading finishes, so read it from `OnGameReady` onwards rather than `OnLoad`.
+
 ---
 
 ## Building
@@ -240,6 +258,16 @@ Deploy straight into the game folder:
 ```powershell
 .\deploy.ps1 -GameDir "D:\Games\Rekindling" -IncludeSample
 ```
+
+`-IncludeSample` also deploys the two bundled sample mods:
+
+| Sample | What it demonstrates |
+| --- | --- |
+| `ExampleMod` | The minimum viable mod: logging, lifecycle events, a Harmony patch, cross-mod lookup. |
+| `MenuOverhaul` | A real feature mod - crossfading background slideshow, a rebuilt main menu layout, and an in-game Mods screen with posters. |
+
+Deploying fails fast if the game is running, because a running game holds its mod assemblies open
+and the copy would silently leave you testing the previous build.
 
 Run the tests:
 
@@ -320,11 +348,14 @@ Automated (55 checks, `tests/`):
 
 On a real game launch:
 
-- Mod discovered, loaded, and its Harmony patch applied.
+- Three mods discovered and loaded together, and their Harmony patches applied.
 - All six lifecycle hooks attached.
 - `GameStateChanged` fired correctly through `menu → loading → menu`.
-- `DrawEnded` fired for 2247 frames.
+- 15,134 frames rendered across the menu, the Options screen and the Mods screen, with no errors.
 - A loose PNG converted and accepted by MonoGame's `Texture2DReader` without error.
+- `MenuOverhaul` verified by screenshot: logo repositioned, button column rebuilt and clear of the
+  game's social buttons, background crossfade caught mid-transition, and the Mods screen listing
+  all three mods with posters.
 - Clean shutdown with `OnUnload` called.
 
 Not yet verified:

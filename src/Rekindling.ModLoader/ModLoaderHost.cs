@@ -86,6 +86,7 @@ namespace Rekindling.ModLoader
             if (discovered.Count == 0)
             {
                 Log.Info("Loader", $"No mods found in {modsDirectory}.");
+                ModRegistry.Populate(new IModInfo[0]);
                 return;
             }
 
@@ -97,6 +98,9 @@ namespace Rekindling.ModLoader
 
             foreach (LoadedMod mod in ordered)
                 LoadMod(mod);
+
+            // Publish the results so mods (and the in-game mod list) can read them.
+            ModRegistry.Populate(All.Cast<IModInfo>().ToList());
 
             ReportSummary();
         }
