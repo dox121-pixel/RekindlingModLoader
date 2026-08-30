@@ -119,6 +119,11 @@ namespace Rekindling.ModLoader
             Patch(AccessTools.Method(game, "UnloadContent"),
                 prefix: nameof(UnloadContentPrefix), description: "ModEvents.ShuttingDown");
 
+            // setupMainMenu lives on MainMenu, not Game1.
+            Type mainMenu = AccessTools.TypeByName("ZTD.MainMenu");
+            Patch(AccessTools.Method(mainMenu, "setupMainMenu"),
+                postfix: nameof(SetupMainMenuPostfix), description: "co-op guard");
+
             PatchGameState(game);
         }
 
@@ -155,7 +160,15 @@ namespace Rekindling.ModLoader
             }
         }
 
-        private static void UpdatePrefix(GameTime gameTime) => ModEventBridge.RaiseUpdateStarted(gameTime);
+        private static void UpdatePrefix(GameTime gameTime)
+        {
+            // Re-asserted every frame so nothing the game does later can re-enable co-op.
+            MultiplayerGuard.Apply();
+            ModEventBridge.RaiseUpdateStarted(gameTime);
+        }
+
+        /// <summary>The Co-op icons only exist once the main menu has loaded its content.</summary>
+        private static void SetupMainMenuPostfix() => MultiplayerGuard.DimCoopIcons();
 
         private static void UpdatePostfix(GameTime gameTime) => ModEventBridge.RaiseUpdateEnded(gameTime);
 

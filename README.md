@@ -66,8 +66,22 @@ Rekindling/
 
 To disable a mod without deleting it, rename its folder to start with `_` or `.`.
 
+### Co-op is disabled while mods are loaded
+
+The loader turns multiplayer off by default. This is not caution for its own sake: the game
+synchronises simulation state between clients, so any mod that touches that state desyncs every
+player not running an identical mod set. A silently-broken lobby is a worse outcome than a
+clearly-disabled button.
+
+Join Game is greyed out and unclickable, the Solo/Co-op toggle is dimmed and inert, and Steam
+invites are ignored. Pass `--allow-multiplayer` to the loader to override it.
+
 Logs go to `Logs/modloader.log`, with the previous run kept as `Logs/modloader.previous.log`.
-Pass `--debug` or `--trace` to the loader for more detail.
+
+| Flag | Effect |
+| --- | --- |
+| `--debug` / `--trace` | More detailed logging. |
+| `--allow-multiplayer` | Re-enables co-op. Mods will desync online play. |
 
 ---
 
@@ -264,7 +278,7 @@ Deploy straight into the game folder:
 | Sample | What it demonstrates |
 | --- | --- |
 | `ExampleMod` | The minimum viable mod: logging, lifecycle events, a Harmony patch, cross-mod lookup. |
-| `MenuOverhaul` | A real feature mod - crossfading background slideshow, a rebuilt main menu layout, relocated Discord/Patreon buttons, and an in-game Mods screen with posters. |
+| `MenuOverhaul` | A real feature mod - crossfading background slideshow, a rebuilt main menu layout with an Extra sub-list, relocated Discord/Patreon buttons, a build-notice watermark, and an in-game Mods screen with posters. |
 
 Deploying fails fast if the game is running, because a running game holds its mod assemblies open
 and the copy would silently leave you testing the previous build.

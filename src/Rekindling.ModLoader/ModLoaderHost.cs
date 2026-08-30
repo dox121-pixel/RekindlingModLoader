@@ -76,6 +76,10 @@ namespace Rekindling.ModLoader
             // does not run Main, so this is safe to do ahead of patching.
             GameAssembly = AssemblyResolver.LoadGameAssembly(gameDirectory);
 
+            // Before the hooks, so the flag is already false when setupMainMenu builds the
+            // menu and decides which entries to disable.
+            MultiplayerGuard.Initialize(HasFlag(args, "--allow-multiplayer"));
+
             GameHooks.GameReady = NotifyGameReady;
             GameHooks.ShuttingDown = Shutdown;
             GameHooks.Apply(Assets);
@@ -331,6 +335,20 @@ namespace Rekindling.ModLoader
             }
 
             Log.Flush();
+        }
+
+        private static bool HasFlag(string[] args, string flag)
+        {
+            if (args == null)
+                return false;
+
+            foreach (string arg in args)
+            {
+                if (arg.Equals(flag, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
         }
 
         private static LogLevel ParseLogLevel(string[] args)
