@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Rekindling.ModLoader</AssemblyName>
+    <RootNamespace>Rekindling.ModLoader</RootNamespace>
+    <Description>Unofficial mod loader for Rekindling.</Description>
+    <!--
+      Must be x86. Rekindling.exe is an IL-only assembly with the 32BIT_REQUIRED flag set, and
+      Steamworks.NET.dll is the same, so the game only runs in a 32-bit process. Since the entry
+      executable fixes the process architecture at launch, an AnyCPU loader would start 64-bit on
+      Windows and then fail with BadImageFormatException the moment it touched the game assembly.
+    -->
+    <PlatformTarget>x86</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rekindling.ModLoader.API\Rekindling.ModLoader.API.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="MonoGame.Framework">
+      <HintPath>$(RekindlingDir)\MonoGame.Framework.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+</Project>

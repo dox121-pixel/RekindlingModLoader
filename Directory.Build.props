@@ -1,0 +1,33 @@
+<Project>
+
+  <!--
+    Path to the Rekindling install. Override on the command line if yours differs:
+        dotnet build -p:RekindlingDir="D:\Games\Rekindling"
+    Only MonoGame.Framework.dll is referenced at compile time; the game assembly itself
+    is resolved reflectively at runtime so the loader survives game updates.
+  -->
+  <PropertyGroup>
+    <RekindlingDir Condition="'$(RekindlingDir)' == ''">C:\SteamLibrary\steamapps\common\Rekindling</RekindlingDir>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Company>Rekindling Mod Loader</Company>
+    <Version>0.1.0</Version>
+    <Deterministic>true</Deterministic>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="VerifyRekindlingDir" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(RekindlingDir)\MonoGame.Framework.dll')"
+           Text="Could not find MonoGame.Framework.dll in '$(RekindlingDir)'. Set RekindlingDir to your Rekindling install folder, e.g. -p:RekindlingDir=&quot;D:\Games\Rekindling&quot;." />
+  </Target>
+
+</Project>

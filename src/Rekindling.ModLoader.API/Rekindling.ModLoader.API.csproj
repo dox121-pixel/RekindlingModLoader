@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Rekindling.ModLoader.API</AssemblyName>
+    <RootNamespace>Rekindling.ModLoader</RootNamespace>
+    <Description>Public API surface that Rekindling mods compile against.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Private=false: use the copy the game already ships, never our own. -->
+    <Reference Include="MonoGame.Framework">
+      <HintPath>$(RekindlingDir)\MonoGame.Framework.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>
