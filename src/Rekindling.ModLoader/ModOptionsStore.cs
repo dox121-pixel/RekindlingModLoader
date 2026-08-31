@@ -65,6 +65,16 @@ namespace Rekindling.ModLoader
         public PointOption Point(string key, string label, float defaultX, float defaultY, string description = null)
             => Declare(new PointOption(key, label, defaultX, defaultY, description));
 
+        public TextOption Text(string key, string label, string defaultValue, bool hidden = false, string description = null)
+        {
+            TextOption option = Declare(new TextOption(key, label, defaultValue, description));
+            option.Hidden = hidden;
+            return option;
+        }
+
+        public ActionOption Action(string key, string label, string buttonText, Action action, string description = null)
+            => Declare(new ActionOption(key, label, buttonText, action, description));
+
         private T Declare<T>(T option) where T : ModOption
         {
             if (Find(option.Key) != null)
@@ -137,10 +147,18 @@ namespace Rekindling.ModLoader
                 json.AppendLine("{");
                 json.AppendLine($"  \"_mod\": {Quote(ModId)},");
 
-                for (int i = 0; i < _options.Count; i++)
+                // Actions carry no value; writing them would just add noise to the file.
+                var storable = new List<ModOption>();
+                foreach (ModOption option in _options)
                 {
-                    ModOption option = _options[i];
-                    bool last = i == _options.Count - 1;
+                    if (option.Kind != ModOptionKind.Action)
+                        storable.Add(option);
+                }
+
+                for (int i = 0; i < storable.Count; i++)
+                {
+                    ModOption option = storable[i];
+                    bool last = i == storable.Count - 1;
 
                     json.Append("  ")
                         .Append(Quote(option.Key))

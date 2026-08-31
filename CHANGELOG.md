@@ -6,6 +6,9 @@ while the major version is 0, the mod API may still change between minor release
 ## [Unreleased]
 
 ### Added
+- Two more option kinds: `Text` (usually hidden, for state a mod persists but presents its own
+  way) and `Action` (a button in the settings screen, for anything a value control cannot express
+  - opening a folder, running a scan). `ModOption.Hidden` tells a settings UI to skip an option.
 - **Mod settings.** Mods declare options in `OnLoad` (`Toggle`, `Choice`, `Slider`, and `Point`
   for a screen position); the loader persists them to `ModConfig/<mod id>.json` and restores them
   on the next launch. Storage lives outside the mod folder so settings survive reinstalling a

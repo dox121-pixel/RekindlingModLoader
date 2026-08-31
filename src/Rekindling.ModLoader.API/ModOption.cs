@@ -10,7 +10,13 @@ namespace Rekindling.ModLoader
         Toggle,
         Choice,
         Slider,
-        Point
+        Point,
+
+        /// <summary>Free text. Usually hidden, for state a mod persists but does not expose.</summary>
+        Text,
+
+        /// <summary>Not a value at all - a button that runs something.</summary>
+        Action
     }
 
     /// <summary>
@@ -42,6 +48,15 @@ namespace Rekindling.ModLoader
 
         /// <summary>Optional one-liner explaining what it does.</summary>
         public string Description { get; }
+
+        /// <summary>
+        /// When true a settings UI should skip this option.
+        /// </summary>
+        /// <remarks>
+        /// For state a mod needs persisted but which has no sensible generic control - a list of
+        /// filenames, a remembered window position. The mod presents it its own way, if at all.
+        /// </remarks>
+        public bool Hidden { get; set; }
 
         public abstract ModOptionKind Kind { get; }
 
@@ -305,5 +320,77 @@ namespace Rekindling.ModLoader
                 Set(x, y);
             }
         }
+    }
+}
+
+namespace Rekindling.ModLoader
+{
+    /// <summary>
+    /// A free-text setting. Usually <see cref="ModOption.Hidden"/>, holding state a mod persists
+    /// but presents through its own UI rather than a generic text box.
+    /// </summary>
+    public sealed class TextOption : ModOption
+    {
+        private string _value;
+
+        public TextOption(string key, string label, string defaultValue, string description = null)
+            : base(key, label, description)
+        {
+            DefaultValue = defaultValue ?? string.Empty;
+            _value = DefaultValue;
+        }
+
+        public string DefaultValue { get; }
+
+        public string Value
+        {
+            get => _value;
+            set
+            {
+                string incoming = value ?? string.Empty;
+                if (string.Equals(_value, incoming, System.StringComparison.Ordinal))
+                    return;
+
+                _value = incoming;
+                RaiseChanged();
+            }
+        }
+
+        public override ModOptionKind Kind => ModOptionKind.Text;
+        public override bool IsDefault => string.Equals(_value, DefaultValue, System.StringComparison.Ordinal);
+        public override void Reset() => Value = DefaultValue;
+
+        public override string Serialize() => _value;
+        public override void Deserialize(string raw) => Value = raw;
+    }
+
+    /// <summary>
+    /// A button in a settings screen. Holds no value and is never persisted; activating it just
+    /// runs the mod's callback, which is how a mod offers something a generic control cannot
+    /// express - opening a folder, running a scan, resetting saved data.
+    /// </summary>
+    public sealed class ActionOption : ModOption
+    {
+        private readonly System.Action _action;
+
+        public ActionOption(string key, string label, string buttonText, System.Action action, string description = null)
+            : base(key, label, description)
+        {
+            ButtonText = string.IsNullOrWhiteSpace(buttonText) ? "Go" : buttonText;
+            _action = action;
+        }
+
+        /// <summary>Text shown on the button itself.</summary>
+        public string ButtonText { get; }
+
+        public void Invoke() => _action?.Invoke();
+
+        public override ModOptionKind Kind => ModOptionKind.Action;
+
+        // Nothing to store, so it is always "default" and serialising is a no-op.
+        public override bool IsDefault => true;
+        public override void Reset() { }
+        public override string Serialize() => string.Empty;
+        public override void Deserialize(string raw) { }
     }
 }

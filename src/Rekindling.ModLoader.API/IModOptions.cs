@@ -44,6 +44,17 @@ namespace Rekindling.ModLoader
         /// </summary>
         PointOption Point(string key, string label, float defaultX, float defaultY, string description = null);
 
+        /// <summary>
+        /// Declares free text. Pass <paramref name="hidden"/> for state the mod persists but
+        /// presents itself, such as a list of filenames.
+        /// </summary>
+        TextOption Text(string key, string label, string defaultValue, bool hidden = false, string description = null);
+
+        /// <summary>
+        /// Declares a button. Nothing is stored; activating it runs <paramref name="action"/>.
+        /// </summary>
+        ActionOption Action(string key, string label, string buttonText, Action action, string description = null);
+
         /// <summary>Looks up a declared option by key, or <c>null</c>.</summary>
         ModOption Find(string key);
 
