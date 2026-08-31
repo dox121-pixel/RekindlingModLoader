@@ -179,6 +179,69 @@ ModEvents.ShuttingDown     += ...;  // during Game1.UnloadContent
 Handlers run on the game's main thread. An exception in one is caught and logged rather than
 crashing the game, but a slow handler still stalls the frame — keep per-frame work cheap.
 
+### World and tile events
+
+The events above fire per rendered frame. Most of the game's actual logic does not run there —
+it runs in the tile simulation, which sweeps a 20x20 window of tiles and advances that window
+across the map. That is how the game keeps a large world affordable, and it is where to hook
+anything that should act on the world over time: a new kind of active object, a custom growth or
+decay rule, periodic checks against neighbouring tiles.
+
+```csharp
+WorldEvents.TileUpdate  += ...;  // every tile the sweep touches
+WorldEvents.TickStarted += ...;  // before a world tick
+WorldEvents.TickEnded   += ...;  // after a world tick
+WorldEvents.TileChanged += ...;  // a tile replaced outright (how network updates land)
+```
+
+Context members are typed as `object`, because the API assembly deliberately does not reference
+the game. Cast them in your handler:
+
+```csharp
+private int _oozeTiles;
+private int _ticks;
+
+protected override void OnLoad()
+{
+    WorldEvents.TileUpdate += OnTileUpdate;
+    WorldEvents.TickEnded  += OnTickEnded;
+}
+
+private void OnTileUpdate(in TileUpdateContext context)
+{
+    // Runs ~20,000 times a second. Do the cheapest possible thing here.
+    var tile = (ZTD.Tile)context.Tile;
+    if (tile.hasOoze)
+        _oozeTiles++;
+}
+
+private void OnTickEnded(in WorldTickContext context)
+{
+    // ...and the real work here, on the coarser tick.
+    if (++_ticks % 300 == 0)
+        Log.Debug($"{_oozeTiles} oozed tiles since the last report");
+
+    _oozeTiles = 0;
+}
+```
+
+**`TileUpdate` is a hot path** — measured at roughly twenty thousand calls a second at 3x game
+speed. The world runs once per *speed step*, so the rate scales with how fast the player has the
+game running, and `TickStarted` / `TickEnded` likewise fire several times a frame at higher
+speeds. The loader makes the event free when nothing is subscribed and raises it with no
+per-call allocation, but what your handler does is on you: accumulate cheaply in `TileUpdate`,
+do expensive work in `TickEnded`.
+
+`WorldTickContext.SpeedStep` is the step index *within the current frame* (0, 1, 2… up to the
+game speed). It is not a frame counter and does not grow over time, so keep your own counter if
+you want to act every Nth tick. It is useful for doing something once per frame regardless of
+speed (`SpeedStep == 0`).
+
+Because `TileUpdate` fires so often, a handler that throws is logged in full and then
+**unsubscribed for the rest of the session** — one that faults on the first tile would otherwise
+fault on every tile and fill the log within seconds. The coarser events log and carry on.
+
+
 ### Replacing art and sound
 
 Put files under your `assets` folder, mirroring the game's `Content` layout minus the extension:
