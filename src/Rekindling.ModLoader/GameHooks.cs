@@ -175,7 +175,8 @@ namespace Rekindling.ModLoader
         }
 
         /// <summary>
-        /// Runs for every tile of every sweep - roughly eight thousand times a second. The
+        /// Runs for every tile of every sweep - measured at roughly twenty thousand times a
+        /// second at 3x game speed. The
         /// subscriber check comes first so that an unsubscribed event costs one field read and
         /// a branch, and the context struct is only built when somebody is actually listening.
         /// </summary>

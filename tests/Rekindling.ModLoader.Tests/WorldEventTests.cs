@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 
 namespace Rekindling.ModLoader.Tests
@@ -15,8 +16,16 @@ namespace Rekindling.ModLoader.Tests
         public string Name;
 
         // Same shape as ZTD.Tile.passiveUpdates(Tile[,], SurviorManager, CreatureManager).
+        //
+        // NoInlining is load-bearing. This body is empty, so in a Release build the JIT inlines
+        // it into the caller and the Harmony patch never runs - the test would report that
+        // injection is broken when it is fine. The real passiveUpdates is far too large to be
+        // inlined, which is why the game hooks work. Worth knowing before hooking any very small
+        // game method.
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void passiveUpdates(FakeTile[,] allTiles, FakeSurvivorManager survman, FakeCreatureManager creatman)
         {
+            Name = Name ?? string.Empty;
         }
     }
 

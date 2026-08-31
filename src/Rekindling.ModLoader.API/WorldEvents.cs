@@ -40,10 +40,10 @@ namespace Rekindling.ModLoader
     /// <summary>Context for the start and end of a world tick.</summary>
     public readonly struct WorldTickContext
     {
-        public WorldTickContext(object world, int updateFrame, object survivorManager, object creatureManager)
+        public WorldTickContext(object world, int speedStep, object survivorManager, object creatureManager)
         {
             World = world;
-            UpdateFrame = updateFrame;
+            SpeedStep = speedStep;
             SurvivorManager = survivorManager;
             CreatureManager = creatureManager;
         }
@@ -51,7 +51,17 @@ namespace Rekindling.ModLoader
         /// <summary>Cast to <c>ZTD.World</c>.</summary>
         public object World { get; }
 
-        public int UpdateFrame { get; }
+        /// <summary>
+        /// Which step of the current frame this tick is, counting from zero.
+        /// </summary>
+        /// <remarks>
+        /// The game runs the world <c>speed</c> times per frame, so at 3x game speed a single
+        /// frame produces ticks 0, 1 and 2. It is <b>not</b> a frame counter and it does not
+        /// increase over time - do not try to rate-limit with it. Keep your own counter instead.
+        /// It is useful for telling how fast the game is currently running, or for doing
+        /// something only once per frame regardless of speed (<c>SpeedStep == 0</c>).
+        /// </remarks>
+        public int SpeedStep { get; }
 
         /// <summary>Cast to <c>ZTD.SurviorManager</c>.</summary>
         public object SurvivorManager { get; }
@@ -99,16 +109,21 @@ namespace Rekindling.ModLoader
     /// active object, a custom growth or decay rule, periodic checks against nearby tiles.
     /// </para>
     /// <para>
-    /// <b>This is a hot path.</b> That window works out at roughly eight thousand calls a second.
-    /// Handlers are invoked from a cached array with no per-call allocation, and the whole thing
-    /// costs nothing at all when nobody is subscribed - but what your handler does is on you.
-    /// Keep it cheap, and prefer to do real work on your own schedule using
+    /// <b>This is a hot path.</b> Measured at around twenty thousand calls a second at 3x game
+    /// speed - the world runs once per speed step, so the rate scales with how fast the player
+    /// has the game running. Handlers are invoked from a cached array with no per-call
+    /// allocation, and the whole thing costs nothing at all when nobody is subscribed - but what
+    /// your handler does is on you. Keep it cheap, and do real work on your own schedule using
     /// <see cref="TickStarted"/> and <see cref="TickEnded"/> to batch it.
     /// </para>
     /// <para>
     /// Because <see cref="TileUpdate"/> runs so often, a handler that throws is logged in full
     /// and then <b>unsubscribed</b>. One that faults on the first tile would otherwise fault on
     /// every tile and write gigabytes of log within a minute. The coarser events log and carry on.
+    /// </para>
+    /// <para>
+    /// <see cref="TickStarted"/> and <see cref="TickEnded"/> also fire per speed step rather than
+    /// per frame, so they run several times a frame at higher game speeds.
     /// </para>
     /// <para>
     /// Not to be confused with <see cref="ModEvents.UpdateStarted"/>, which fires once per

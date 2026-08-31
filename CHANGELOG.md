@@ -9,9 +9,9 @@ while the major version is 0, the mod API may still change between minor release
 - `WorldEvents`, hooking the tile simulation where most of the game's logic actually runs:
   `TileUpdate` per swept tile, `TickStarted` / `TickEnded` around each world tick, and
   `TileChanged` when a tile is replaced outright. Suggested by the game's developer as the
-  injection point worth having. `TileUpdate` is on a hot path - roughly eight thousand calls a
-  second - so it costs nothing when unsubscribed, allocates nothing per call, and disables a
-  handler that throws rather than letting it flood the log.
+  injection point worth having. `TileUpdate` is on a hot path - measured at roughly twenty
+  thousand calls a second at 3x game speed - so it costs nothing when unsubscribed, allocates
+  nothing per call, and disables a handler that throws rather than letting it flood the log.
 - Co-op is disabled by default while mods are loaded, because the game synchronises simulation
   state between clients and any mod touching it desyncs players not running an identical mod
   set. Join Game is greyed out and unclickable, the Solo/Co-op toggle is dimmed and inert, and

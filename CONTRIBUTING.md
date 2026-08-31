@@ -59,6 +59,9 @@ These come from things that have already gone wrong here:
   `Logs/`. That is what keeps Steam's file validation clean and survives game updates.
 - **The loader is x86.** `Rekindling.exe` carries the `32BIT_REQUIRED` flag, so an AnyCPU
   build starts 64-bit and dies with `BadImageFormatException`.
+- **Very small methods may not be patchable.** The JIT inlines trivial method bodies in Release
+  builds, and an inlined method never runs the patched version. If a hook silently does nothing
+  in Release but works in Debug, this is usually why.
 - **Comment the surprising parts, not the obvious ones.** Most of the awkward code here exists
   because of something specific about the game; write down which thing, so the next person
   does not "simplify" it back into a bug.
