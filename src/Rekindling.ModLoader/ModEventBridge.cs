@@ -15,6 +15,9 @@ namespace Rekindling.ModLoader
         {
             ModEvents.HandlerFailed = (source, exception) =>
                 Log.Error("Events", $"Unhandled exception in {source}.", exception);
+
+            WorldEvents.HandlerFailed = (source, exception) =>
+                Log.Error("World", source, exception);
         }
 
         public static void RaiseGameReady() => ModEvents.RaiseGameReady();

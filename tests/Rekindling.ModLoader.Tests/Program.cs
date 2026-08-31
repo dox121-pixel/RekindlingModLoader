@@ -31,6 +31,7 @@ namespace Rekindling.ModLoader.Tests
             RunVersionTests();
             RunDependencyTests();
             RunXnbTests(gameDirectory);
+            WorldEventTests.Run(Section, IsTrue, (e, a, w) => AreEqual(e, a, w));
 
             Console.WriteLine(new string('-', 60));
             Console.WriteLine($"{_passed} passed, {Failures.Count} failed.");

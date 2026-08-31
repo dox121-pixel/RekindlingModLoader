@@ -16,7 +16,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <Company>Rekindling Mod Loader</Company>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Deterministic>true</Deterministic>
     <DebugType>portable</DebugType>
   </PropertyGroup>

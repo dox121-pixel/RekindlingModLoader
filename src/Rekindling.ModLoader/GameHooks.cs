@@ -125,6 +125,7 @@ namespace Rekindling.ModLoader
                 postfix: nameof(SetupMainMenuPostfix), description: "co-op guard");
 
             PatchGameState(game);
+            PatchWorldSimulation();
         }
 
         private static void PatchGameState(Type game)
@@ -145,6 +146,69 @@ namespace Rekindling.ModLoader
             Patch(setter,
                 prefix: nameof(GameStatePrefix), postfix: nameof(GameStatePostfix),
                 description: "ModEvents.GameStateChanged");
+        }
+
+        // ------------------------------------------------------------------- world
+
+        /// <summary>
+        /// Hooks the tile simulation, which is where most of the game's logic actually runs.
+        /// </summary>
+        /// <remarks>
+        /// Suggested by the game's developer as the place worth exposing: the world sweeps a
+        /// 20x20 window of tiles every few frames rather than touching everything every frame,
+        /// and that sweep is what drives world behaviour.
+        /// </remarks>
+        private static void PatchWorldSimulation()
+        {
+            Type tile = AccessTools.TypeByName("ZTD.Tile");
+            Type world = AccessTools.TypeByName("ZTD.World");
+
+            Patch(AccessTools.Method(tile, "passiveUpdates"),
+                postfix: nameof(TilePassiveUpdatePostfix), description: "WorldEvents.TileUpdate");
+
+            Patch(AccessTools.Method(world, "update"),
+                prefix: nameof(WorldUpdatePrefix), postfix: nameof(WorldUpdatePostfix),
+                description: "WorldEvents.TickStarted / TickEnded");
+
+            Patch(AccessTools.Method(world, "UpdateSingleTile"),
+                postfix: nameof(UpdateSingleTilePostfix), description: "WorldEvents.TileChanged");
+        }
+
+        /// <summary>
+        /// Runs for every tile of every sweep - roughly eight thousand times a second. The
+        /// subscriber check comes first so that an unsubscribed event costs one field read and
+        /// a branch, and the context struct is only built when somebody is actually listening.
+        /// </summary>
+        private static void TilePassiveUpdatePostfix(object __instance, object allTiles, object survman, object creatman)
+        {
+            if (!WorldEvents.HasTileUpdateSubscribers)
+                return;
+
+            WorldEvents.RaiseTileUpdate(new TileUpdateContext(__instance, allTiles, survman, creatman));
+        }
+
+        private static void WorldUpdatePrefix(object __instance, int updateFrame, object survman, object creatman)
+        {
+            if (!WorldEvents.HasTickSubscribers)
+                return;
+
+            WorldEvents.RaiseTickStarted(new WorldTickContext(__instance, updateFrame, survman, creatman));
+        }
+
+        private static void WorldUpdatePostfix(object __instance, int updateFrame, object survman, object creatman)
+        {
+            if (!WorldEvents.HasTickSubscribers)
+                return;
+
+            WorldEvents.RaiseTickEnded(new WorldTickContext(__instance, updateFrame, survman, creatman));
+        }
+
+        private static void UpdateSingleTilePostfix(object __instance, object tIO, int x, int y)
+        {
+            if (!WorldEvents.HasTileChangedSubscribers)
+                return;
+
+            WorldEvents.RaiseTileChanged(new TileChangedContext(__instance, tIO, x, y));
         }
 
         private static void InitializePostfix()
