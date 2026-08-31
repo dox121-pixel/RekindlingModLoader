@@ -15,6 +15,7 @@ namespace Rekindling.ModLoader
             IModLogger log,
             Harmony harmony,
             IAssetOverrides assets,
+            IModOptions options,
             string gameDirectory,
             string loaderVersion,
             Func<string, IMod> lookup)
@@ -23,6 +24,7 @@ namespace Rekindling.ModLoader
             Log = log;
             Harmony = harmony;
             Assets = assets;
+            Options = options;
             GameDirectory = gameDirectory;
             LoaderVersion = loaderVersion;
             _lookup = lookup;
@@ -37,6 +39,8 @@ namespace Rekindling.ModLoader
         public Harmony Harmony { get; }
 
         public IAssetOverrides Assets { get; }
+
+        public IModOptions Options { get; }
 
         public string GameDirectory { get; }
 

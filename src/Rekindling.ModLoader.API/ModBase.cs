@@ -33,6 +33,9 @@ namespace Rekindling.ModLoader
         /// <summary>Absolute path to the folder containing this mod's <c>mod.json</c>.</summary>
         protected string ModDirectory => Context.ModDirectory;
 
+        /// <summary>This mod's settings. Declare them in <c>OnLoad</c>.</summary>
+        protected IModOptions Options => Context.Options;
+
         void IMod.OnLoad(IModContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));

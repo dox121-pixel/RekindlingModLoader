@@ -26,6 +26,12 @@ namespace Rekindling.ModLoader
         /// <summary>Asset override registry, shared across all mods.</summary>
         IAssetOverrides Assets { get; }
 
+        /// <summary>
+        /// This mod's settings. Declare them in <c>OnLoad</c>; saved values are restored as each
+        /// one is declared, and changes are persisted for you.
+        /// </summary>
+        IModOptions Options { get; }
+
         /// <summary>Absolute path to the Rekindling install folder.</summary>
         string GameDirectory { get; }
 

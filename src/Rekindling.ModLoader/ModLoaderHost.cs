@@ -35,9 +35,12 @@ namespace Rekindling.ModLoader
         private static Dictionary<string, LoadedMod> _byId =
             new Dictionary<string, LoadedMod>(StringComparer.OrdinalIgnoreCase);
 
+        private static readonly List<ModOptionsStore> OptionStores = new List<ModOptionsStore>();
+
         private static bool _initialized;
         private static bool _shutdown;
         private static string _gameDirectory;
+        private static string _configDirectory;
 
         /// <summary>Version of the running loader.</summary>
         public static string Version { get; } =
@@ -63,6 +66,8 @@ namespace Rekindling.ModLoader
             _initialized = true;
 
             _gameDirectory = gameDirectory;
+            // Settings live outside the mod folders, so they survive updating or reinstalling a mod.
+            _configDirectory = Path.Combine(gameDirectory, "ModConfig");
             LogLevel level = ParseLogLevel(args);
 
             Log.Initialize(gameDirectory, level);
@@ -117,6 +122,18 @@ namespace Rekindling.ModLoader
             if (_shutdown || !_initialized)
                 return;
             _shutdown = true;
+
+            foreach (ModOptionsStore store in OptionStores)
+            {
+                try
+                {
+                    store.Save();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(store.ModId, "Failed to save options during shutdown.", ex);
+                }
+            }
 
             foreach (LoadedMod mod in All.Where(m => m.IsLoaded).Reverse())
             {
@@ -173,17 +190,28 @@ namespace Rekindling.ModLoader
                     return;
                 }
 
+                var logger = new ModLogger(mod.Id);
+                var options = new ModOptionsStore(mod.Id, _configDirectory, logger);
+
                 mod.Instance = instance;
                 mod.Context = new ModContext(
                     manifest,
-                    new ModLogger(mod.Id),
+                    logger,
                     new Harmony(mod.Id),
                     Assets,
+                    options,
                     _gameDirectory,
                     Version,
                     LookupMod);
 
                 instance.OnLoad(mod.Context);
+
+                if (options.All.Count > 0)
+                {
+                    OptionStores.Add(options);
+                    ModOptionsRegistry.Register(options);
+                    Log.Debug(mod.Id, $"Declared {options.All.Count} option(s).");
+                }
 
                 mod.IsLoaded = true;
                 Log.Info("Loader", $"Loaded {manifest.Name} {manifest.Version} by {manifest.Author ?? "unknown"}.");
@@ -335,6 +363,16 @@ namespace Rekindling.ModLoader
             }
 
             Log.Flush();
+        }
+
+        /// <summary>
+        /// Writes any option changes that have settled. Called once per frame; the stores
+        /// themselves decide whether enough time has passed to be worth a disk write.
+        /// </summary>
+        internal static void FlushOptions()
+        {
+            for (int i = 0; i < OptionStores.Count; i++)
+                OptionStores[i].FlushIfDue();
         }
 
         private static bool HasFlag(string[] args, string flag)

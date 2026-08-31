@@ -6,6 +6,11 @@ while the major version is 0, the mod API may still change between minor release
 ## [Unreleased]
 
 ### Added
+- **Mod settings.** Mods declare options in `OnLoad` (`Toggle`, `Choice`, `Slider`, and `Point`
+  for a screen position); the loader persists them to `ModConfig/<mod id>.json` and restores them
+  on the next launch. Storage lives outside the mod folder so settings survive reinstalling a
+  mod. A mod does not have to draw anything to be configurable — `ModOptionsRegistry` exposes
+  every mod's options so a UI mod can render them all.
 - `WorldEvents`, hooking the tile simulation where most of the game's logic actually runs:
   `TileUpdate` per swept tile, `TickStarted` / `TickEnded` around each world tick, and
   `TileChanged` when a tile is replaced outright. Suggested by the game's developer as the

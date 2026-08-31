@@ -229,6 +229,10 @@ namespace Rekindling.ModLoader
         {
             // Re-asserted every frame so nothing the game does later can re-enable co-op.
             MultiplayerGuard.Apply();
+
+            // Persists option changes once they have settled, so dragging a control does not
+            // write the file every frame.
+            ModLoaderHost.FlushOptions();
             ModEventBridge.RaiseUpdateStarted(gameTime);
         }
 

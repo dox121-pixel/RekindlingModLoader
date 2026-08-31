@@ -242,6 +242,47 @@ Because `TileUpdate` fires so often, a handler that throws is logged in full and
 fault on every tile and fill the log within seconds. The coarser events log and carry on.
 
 
+### Mod settings
+
+Declare options in `OnLoad` and the loader stores them, restores them on the next launch, and
+tells you when they change. You do not have to draw anything — any mod that provides a settings
+UI can render yours.
+
+```csharp
+private ChoiceOption _position;
+private ToggleOption _enabled;
+
+protected override void OnLoad()
+{
+    _enabled  = Options.Toggle("enabled", "Enabled", true);
+    _position = Options.Choice("position", "Button position",
+        new[] { "Middle left", "Centre", "Middle right" }, "Middle left");
+
+    _position.Changed += _ => Relayout();
+}
+```
+
+| Kind | Declares | Rendered as |
+| --- | --- | --- |
+| `Toggle` | on/off | a switch |
+| `Choice` | pick one of a list | a cycling control |
+| `Slider` | a number in a range, with a step | a draggable bar |
+| `Point` | a position, as a fraction of the screen | a "place by hand" button |
+
+`Point` stores a fraction rather than pixels, so a placement survives a resolution change. It is
+meant to be set by dragging rather than typed.
+
+Values live in `ModConfig/<mod id>.json` in the game folder, **not** in the mod's folder — so
+settings survive updating or reinstalling a mod, and a mod folder stays something you can delete
+and replace wholesale. Writes are deferred a moment after the last change, because dragging a
+control fires a change every frame.
+
+A malformed config never stops a mod loading; it falls back to defaults and logs a warning. A
+saved value that is no longer valid (a choice that has since been removed) is ignored the same way.
+
+To build a settings screen covering everything installed, walk `ModOptionsRegistry.All`.
+
+
 ### Replacing art and sound
 
 Put files under your `assets` folder, mirroring the game's `Content` layout minus the extension:
